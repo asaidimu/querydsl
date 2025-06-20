@@ -1,3 +1,17 @@
+# [2.0.0](https://github.com/asaidimu/querydsl/compare/v1.0.0...v2.0.0) (2025-06-20)
+
+
+* refactor(query-generation)!: Make SqliteExecutor's query generation pluggable ([d4fc2c7](https://github.com/asaidimu/querydsl/commit/d4fc2c7fa41c343a7b0684ddfe431edce91f6811))
+
+
+### BREAKING CHANGES
+
+* The 'NewSqliteExecutor' constructor now requires a
+'querydsl.QueryGenerator' argument. Existing calls like
+'sqlite.NewSqliteExecutor(db)' must be updated to
+'sqlite.NewSqliteExecutor(db, sqlite.NewSqliteQuery())' or by providing a
+custom QueryGenerator implementation.
+
 # 1.0.0 (2025-06-18)
 
 
