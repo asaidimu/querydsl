@@ -1,3 +1,16 @@
+# [4.0.0](https://github.com/asaidimu/querydsl/compare/v3.0.0...v4.0.0) (2025-06-20)
+
+
+* refactor(executor)!: change Update method return type to rows affected ([f050edc](https://github.com/asaidimu/querydsl/commit/f050edc24220a8e7dfdcbc6fef0b559409bb05f3))
+
+
+### BREAKING CHANGES
+
+* The QueryExecutor.Update method's signature has changed
+from returning sql.Result to int64. Consumers of this interface or the
+SqliteExecutor.Update method must update their code to expect an int64
+representing the number of rows affected.
+
 # [3.0.0](https://github.com/asaidimu/querydsl/compare/v2.0.0...v3.0.0) (2025-06-20)
 
 
