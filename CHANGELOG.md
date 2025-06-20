@@ -1,3 +1,15 @@
+# [3.0.0](https://github.com/asaidimu/querydsl/compare/v2.0.0...v3.0.0) (2025-06-20)
+
+
+* feat(executor)!: Add database update support and rename query methods ([737149b](https://github.com/asaidimu/querydsl/commit/737149b688b98e67c04f49178aa16467847ea5e4))
+
+
+### BREAKING CHANGES
+
+* The QueryExecutor.Execute method has been renamed to Query.
+The QueryGenerator.Generate method has been renamed to GenerateSelectSQL.
+Update calls to these methods in your code.
+
 # [2.0.0](https://github.com/asaidimu/querydsl/compare/v1.0.0...v2.0.0) (2025-06-20)
 
 
