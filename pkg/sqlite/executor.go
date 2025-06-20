@@ -438,18 +438,17 @@ func (e *SqliteExecutor) applyFinalProjection(rows []querydsl.Row, projection *q
 
 // Update performs an update operation on the database based on the provided
 // tableName, update data, and filters.
-// It returns sql.Result (containing rows affected, etc.) and an error.
-func (e *SqliteExecutor) Update(ctx context.Context, tableName string, updates map[string]any, filters *querydsl.QueryFilter) (sql.Result, error) {
+// It returns the number of rows affected and an error.
+func (e *SqliteExecutor) Update(ctx context.Context, tableName string, updates map[string]any, filters *querydsl.QueryFilter) (int64, error) { // Change return type
 	// Ensure the queryGenerator is set and capable of generating update SQL
-	// (assuming SqliteQuery has been initialized as queryGenerator)
 	sqliteQueryGenerator, ok := e.queryGenerator.(*SqliteQuery)
 	if !ok {
-		return nil, fmt.Errorf("query generator is not a SqliteQuery instance, cannot generate UPDATE SQL")
+		return 0, fmt.Errorf("query generator is not a SqliteQuery instance, cannot generate UPDATE SQL")
 	}
 
-	sqlQuery, queryParams, err := sqliteQueryGenerator.GenerateUpdateSQL(tableName, updates, filters)
+	sqlQuery, queryParams, err := sqliteQueryGenerator.GenerateUpdateSQL(tableName, updates, filters) // Reusing the GenerateUpdateSQL from query.go
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate SQL UPDATE query: %w", err)
+		return 0, fmt.Errorf("failed to generate SQL UPDATE query: %w", err)
 	}
 
 	log.Printf("Generated SQL for DB update: %s", sqlQuery) // For debugging, consider removing in production
@@ -457,9 +456,13 @@ func (e *SqliteExecutor) Update(ctx context.Context, tableName string, updates m
 
 	result, err := e.db.ExecContext(ctx, sqlQuery, queryParams...) // Use ExecContext for UPDATE
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute UPDATE query: %w", err)
+		return 0, fmt.Errorf("failed to execute UPDATE query: %w", err)
 	}
 
-	return result, nil
-}
+	rowsAffected, err := result.RowsAffected() // Extract RowsAffected
+	if err != nil {
+		return 0, fmt.Errorf("failed to get rows affected after update: %w", err)
+	}
 
+	return rowsAffected, nil // Return only rowsAffected
+}

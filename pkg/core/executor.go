@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"database/sql"
 )
 
 // Row represents a single record/row of data retrieved from the database.
@@ -49,5 +48,5 @@ type QueryExecutor interface {
 	// Update performs an update operation on the database based on the provided
 	// tableName, update data, and filters.
 	// It returns sql.Result (containing rows affected, etc.) and an error.
-	Update(ctx context.Context, tableName string, updates map[string]any, filters QueryFilter) (sql.Result, error)
+	Update(ctx context.Context, tableName string, updates map[string]any, filters QueryFilter) (int64, error)
 }
