@@ -190,7 +190,7 @@ func TestExecutorBasicQuery(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	result, err := exec.Execute(ctx, "users", dsl)
+	result, err := exec.Query(ctx, "users", dsl)
 	if err != nil {
 		t.Fatalf("Execute failed: %v", err)
 	}
@@ -245,7 +245,7 @@ func TestExecutorGoComputedFunction(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	result, err := exec.Execute(ctx, "users", dsl)
+	result, err := exec.Query(ctx, "users", dsl)
 	if err != nil {
 		t.Fatalf("Execute failed: %v", err)
 	}
@@ -301,7 +301,7 @@ func TestExecutorGoFilterFunction(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	result, err := exec.Execute(ctx, "users", dsl)
+	result, err := exec.Query(ctx, "users", dsl)
 	if err != nil {
 		t.Fatalf("Execute failed: %v", err)
 	}
@@ -378,7 +378,7 @@ func TestExecutorMixedFilters(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	result, err := exec.Execute(ctx, "users", dsl)
+	result, err := exec.Query(ctx, "users", dsl)
 	if err != nil {
 		t.Fatalf("Execute failed: %v", err)
 	}
@@ -439,7 +439,7 @@ func TestExecutorMixedFilters(t *testing.T) {
 			{Field: "id", Direction: querydsl.SortDirectionAsc},
 		},
 	}
-	results2, err := exec.Execute(ctx, "users", dsl2)
+	results2, err := exec.Query(ctx, "users", dsl2)
 	if err != nil {
 		t.Fatalf("Execute 2 failed: %v", err)
 	}
@@ -558,7 +558,7 @@ func TestExecutorLogicalOperators(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			result, err := exec.Execute(ctx, "users", tt.dsl)
+			result, err := exec.Query(ctx, "users", tt.dsl)
 			if err != nil {
 				t.Fatalf("Execute failed for %s: %v", tt.name, err)
 			}
@@ -645,7 +645,7 @@ func TestExecutorProjectionIncludeExclude(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			result, err := exec.Execute(ctx, "users", tt.dsl)
+			result, err := exec.Query(ctx, "users", tt.dsl)
 			if err != nil {
 				t.Fatalf("Execute failed for %s: %v", tt.name, err)
 			}
@@ -745,7 +745,7 @@ func TestExecutorPagination(t *testing.T) {
 				Sort: baseSort,
 			}
 			ctx := context.Background()
-			result, err := exec.Execute(ctx, "users", dsl)
+			result, err := exec.Query(ctx, "users", dsl)
 			if err != nil {
 				t.Fatalf("Execute failed for %s: %v", tt.name, err)
 			}
@@ -780,7 +780,7 @@ func TestExecutorSQLInjectionProtection(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	_, err := exec.Execute(ctx, maliciousTableName, dsl)
+	_, err := exec.Query(ctx, maliciousTableName, dsl)
 	if err == nil {
 		t.Error("SQL injection attempt on table name succeeded unexpectedly")
 	} else {
@@ -804,7 +804,7 @@ func TestExecutorSQLInjectionProtection(t *testing.T) {
 		},
 	}
 
-	_, err = exec.Execute(ctx, "users", dsl2)
+	_, err = exec.Query(ctx, "users", dsl2)
 	if err != nil {
 		// Verify that the table was NOT dropped
 		var count int
@@ -829,7 +829,7 @@ func TestExecutorSQLInjectionProtection(t *testing.T) {
 			},
 		},
 	}
-	result3, err := exec.Execute(ctx, "users", dsl3)
+	result3, err := exec.Query(ctx, "users", dsl3)
 	if err != nil {
 		t.Fatalf("Execute failed for value injection test: %v", err)
 	}
@@ -856,7 +856,7 @@ func TestExecutorErrorHandling(t *testing.T) {
 	// Test invalid table name
 	dsl := &querydsl.QueryDSL{}
 	ctx := context.Background()
-	_, err := exec.Execute(ctx, "", dsl)
+	_, err := exec.Query(ctx, "", dsl)
 	if err == nil || !strings.Contains(err.Error(), "table name cannot be empty") {
 		t.Errorf("Expected error for empty table name, got: %v", err)
 	}
@@ -875,7 +875,7 @@ func TestExecutorErrorHandling(t *testing.T) {
 			},
 		},
 	}
-	_, err = exec.Execute(ctx, "users", dsl2)
+	_, err = exec.Query(ctx, "users", dsl2)
 	if err == nil || !strings.Contains(err.Error(), "unregistered Go compute function: non_existent_func") {
 		t.Errorf("Expected error for unregistered compute func, got: %v", err)
 	}
@@ -890,7 +890,7 @@ func TestExecutorErrorHandling(t *testing.T) {
 			},
 		},
 	}
-	_, err = exec.Execute(ctx, "users", dsl3)
+	_, err = exec.Query(ctx, "users", dsl3)
 	if err == nil || !strings.Contains(err.Error(), "unregistered Go filter function for operator: non_existent_filter") {
 		t.Errorf("Expected error for unregistered filter func, got: %v", err)
 	}
@@ -941,7 +941,7 @@ func TestExecutorConcurrencySafety(t *testing.T) {
 				},
 			}
 
-			_, err := exec.Execute(context.Background(), "users", dsl)
+			_, err := exec.Query(context.Background(), "users", dsl)
 			executedQueries <- err
 		}(i)
 	}

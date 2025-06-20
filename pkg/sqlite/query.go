@@ -17,8 +17,8 @@ func quoteIdentifier(s string) string {
 	return `"` + escapedS + `"`
 }
 
-// Generate implements the QueryGenerator interface for SQLite.
-func (s *SqliteQuery) Generate(tableName string, dsl *querydsl.QueryDSL) (string, []any, error) {
+// GenerateSelectSQL implements the QueryGenerator interface for SQLite.
+func (s *SqliteQuery) GenerateSelectSQL(tableName string, dsl *querydsl.QueryDSL) (string, []any, error) {
 	if dsl == nil {
 		return "", nil, fmt.Errorf("QueryDSL cannot be nil")
 	}
@@ -187,7 +187,7 @@ func (s *SqliteQuery) buildCondition(cond *querydsl.FilterCondition, queryParams
 	case querydsl.ComparisonOperatorContains:
 		*queryParams = append(*queryParams, "%"+fmt.Sprintf("%v", cond.Value)+"%")
 		return fmt.Sprintf("%s LIKE %s", quotedField, paramPlaceholder), nil
-	case querydsl.ComparisonOperatorNContains:
+	case querydsl.ComparisonOperatorNotContains:
 		*queryParams = append(*queryParams, "%"+fmt.Sprintf("%v", cond.Value)+"%")
 		return fmt.Sprintf("%s NOT LIKE %s", quotedField, paramPlaceholder), nil
 	case querydsl.ComparisonOperatorStartsWith:
@@ -198,9 +198,53 @@ func (s *SqliteQuery) buildCondition(cond *querydsl.FilterCondition, queryParams
 		return fmt.Sprintf("%s LIKE %s", quotedField, paramPlaceholder), nil
 	case querydsl.ComparisonOperatorExists:
 		return fmt.Sprintf("%s IS NOT NULL", quotedField), nil
-	case querydsl.ComparisonOperatorNExists:
+	case querydsl.ComparisonOperatorNotExists:
 		return fmt.Sprintf("%s IS NULL", quotedField), nil
 	default:
 		return "", fmt.Errorf("unsupported comparison operator for direct SQL: %s", cond.Operator)
 	}
+}
+
+// GenerateUpdateSQL creates a complete SQL UPDATE query string and its corresponding
+// parameters from a map of updates and a QueryFilter for the WHERE clause.
+func (s *SqliteQuery) GenerateUpdateSQL(tableName string, updates map[string]any, filters *querydsl.QueryFilter) (string, []any, error) {
+	if tableName == "" {
+		return "", nil, fmt.Errorf("table name cannot be empty")
+	}
+	quotedTableName := quoteIdentifier(tableName)
+
+	var setClauses []string
+	var queryParams []any
+
+	// Build the SET clause
+	if len(updates) == 0 {
+		return "", nil, fmt.Errorf("no fields provided for update")
+	}
+
+	for _, value := range updates {
+		/* accessor, err := s.getFieldSQL(fieldName) // Reuse getFieldSQL to handle nested paths
+		if err != nil {
+			return "", nil, fmt.Errorf("update set clause error for field '%s': %w", fieldName, err)
+		}
+		setClauses = append(setClauses, fmt.Sprintf("%s = ?", accessor)) */
+		queryParams = append(queryParams, value)
+	}
+	setSQL := strings.Join(setClauses, ", ")
+
+	var whereSQL string
+	if filters != nil {
+		var err error
+		whereSQL, err = s.buildWhereClause(filters, &queryParams) // Reuse buildWhereClause
+		if err != nil {
+			return "", nil, fmt.Errorf("error building WHERE clause for update: %w", err)
+		}
+	}
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("UPDATE %s SET %s", quotedTableName, setSQL))
+	if whereSQL != "" {
+		sb.WriteString(" WHERE " + whereSQL)
+	}
+
+	return sb.String() + ";", queryParams, nil
 }

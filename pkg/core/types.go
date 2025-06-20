@@ -27,11 +27,16 @@ const (
 	ComparisonOperatorIn         ComparisonOperator = "in"
 	ComparisonOperatorNin        ComparisonOperator = "nin"
 	ComparisonOperatorContains   ComparisonOperator = "contains"
+
+	// Deprecated: use ComparisonOperatorNotContains instead
 	ComparisonOperatorNContains  ComparisonOperator = "ncontains"
+	ComparisonOperatorNotContains  ComparisonOperator = "ncontains"
 	ComparisonOperatorStartsWith ComparisonOperator = "startswith"
 	ComparisonOperatorEndsWith   ComparisonOperator = "endswith"
 	ComparisonOperatorExists     ComparisonOperator = "exists"
+	// Deprecated: use ComparisonOperatorNotExists instead
 	ComparisonOperatorNExists    ComparisonOperator = "nexists"
+	ComparisonOperatorNotExists    ComparisonOperator = "nexists"
 )
 
 

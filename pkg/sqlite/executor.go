@@ -52,8 +52,8 @@ func (e *SqliteExecutor) RegisterFilterFunction(operator querydsl.ComparisonOper
 	log.Printf("Registered filter function: %s", operator)
 }
 
-// Execute runs a query against the database based on the provided QueryDSL.
-func (e *SqliteExecutor) Execute(ctx context.Context, tableName string, dsl *querydsl.QueryDSL) (*querydsl.QueryResult, error) {
+// Query runs a query against the database based on the provided QueryDSL.
+func (e *SqliteExecutor) Query(ctx context.Context, tableName string, dsl *querydsl.QueryDSL) (*querydsl.QueryResult, error) {
 	// Collect all fields needed from the database for projection and Go functions
 	fieldsToSelect := e.determineFieldsToSelect(dsl)
 
@@ -66,7 +66,7 @@ func (e *SqliteExecutor) Execute(ctx context.Context, tableName string, dsl *que
 		// Computed fields are handled after DB fetch
 	}
 
-	sqlQuery, queryParams, err := e.queryGenerator.Generate(tableName, &sqlDsl)
+	sqlQuery, queryParams, err := e.queryGenerator.GenerateSelectSQL(tableName, &sqlDsl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate SQL query: %w", err)
 	}
@@ -436,8 +436,30 @@ func (e *SqliteExecutor) applyFinalProjection(rows []querydsl.Row, projection *q
 	return finalRows
 }
 
+// Update performs an update operation on the database based on the provided
+// tableName, update data, and filters.
+// It returns sql.Result (containing rows affected, etc.) and an error.
+func (e *SqliteExecutor) Update(ctx context.Context, tableName string, updates map[string]any, filters *querydsl.QueryFilter) (sql.Result, error) {
+	// Ensure the queryGenerator is set and capable of generating update SQL
+	// (assuming SqliteQuery has been initialized as queryGenerator)
+	sqliteQueryGenerator, ok := e.queryGenerator.(*SqliteQuery)
+	if !ok {
+		return nil, fmt.Errorf("query generator is not a SqliteQuery instance, cannot generate UPDATE SQL")
+	}
 
-// IntPtr is a helper to get a pointer to an int for PaginationOptions.Offset
-func IntPtr(i int) *int {
-	return &i
+	sqlQuery, queryParams, err := sqliteQueryGenerator.GenerateUpdateSQL(tableName, updates, filters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate SQL UPDATE query: %w", err)
+	}
+
+	log.Printf("Generated SQL for DB update: %s", sqlQuery) // For debugging, consider removing in production
+	log.Printf("SQL Params: %v", queryParams) // For debugging, consider removing in production
+
+	result, err := e.db.ExecContext(ctx, sqlQuery, queryParams...) // Use ExecContext for UPDATE
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute UPDATE query: %w", err)
+	}
+
+	return result, nil
 }
+
