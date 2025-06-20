@@ -113,15 +113,6 @@ func testGoComputeFullName(row querydsl.Row) (any, error) {
 	return fmt.Sprintf("%s %s", firstName, lastName), nil
 }
 
-func testGoComputeIsEligible(row querydsl.Row) (any, error) {
-	age, ok1 := row["age"].(int64)
-	balance, ok2 := row["balance"].(float64)
-	if !ok1 || !ok2 {
-		return nil, fmt.Errorf("missing age or balance for is_eligible computation in row: %+v", row)
-	}
-	return age >= 20 && balance > 100, nil
-}
-
 func testGoFilterIsAdult(row querydsl.Row) (bool, error) {
 	age, ok := row["age"].(int64)
 	if !ok {
@@ -137,15 +128,6 @@ func testGoFilterHasAccessLevel(row querydsl.Row) (bool, error) {
 	}
 	// For demonstration, let's say "premium" access is the "true" condition
 	return accessLevel == "premium", nil
-}
-
-func testGoFilterBalanceCheck(row querydsl.Row) (bool, error) {
-	balance, ok := row["balance"].(float64)
-	if !ok {
-		return false, fmt.Errorf("balance not found or not float64 for balance_check filter in row: %+v", row)
-	}
-	// Example: balance must be between 100 and 1000
-	return balance >= 100 && balance <= 1000, nil
 }
 
 // Helper to sort results for consistent comparison
@@ -186,7 +168,7 @@ func assertResultsEqual(t *testing.T, actual, expected []map[string]any) {
 func TestExecutorBasicQuery(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 
 	dsl := &querydsl.QueryDSL{
 		Filters: &querydsl.QueryFilter{
@@ -237,7 +219,7 @@ func TestExecutorBasicQuery(t *testing.T) {
 func TestExecutorGoComputedFunction(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 
 	exec.RegisterComputeFunction("full_name_calc", testGoComputeFullName)
 
@@ -295,7 +277,7 @@ func TestExecutorGoComputedFunction(t *testing.T) {
 func TestExecutorGoFilterFunction(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 
 	exec.RegisterFilterFunction("is_adult_check", testGoFilterIsAdult)
 
@@ -348,7 +330,7 @@ func TestExecutorGoFilterFunction(t *testing.T) {
 func TestExecutorMixedFilters(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 
 	exec.RegisterFilterFunction("is_adult_check", testGoFilterIsAdult)     // Go filter
 	exec.RegisterFilterFunction("has_premium", testGoFilterHasAccessLevel) // Go filter
@@ -485,7 +467,7 @@ func TestExecutorMixedFilters(t *testing.T) {
 func TestExecutorLogicalOperators(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 	exec.RegisterFilterFunction("is_adult_check", testGoFilterIsAdult)     // Go filter
 	exec.RegisterFilterFunction("has_premium", testGoFilterHasAccessLevel) // Go filter
 
@@ -600,7 +582,7 @@ func TestExecutorLogicalOperators(t *testing.T) {
 func TestExecutorProjectionIncludeExclude(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 
 	tests := []struct {
 		name     string
@@ -687,7 +669,7 @@ func TestExecutorProjectionIncludeExclude(t *testing.T) {
 func TestExecutorPagination(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 
 	// Ensure predictable order for pagination tests
 	baseSort := []querydsl.SortConfiguration{
@@ -788,7 +770,7 @@ func TestExecutorPagination(t *testing.T) {
 func TestExecutorSQLInjectionProtection(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 	// Attempt to inject malicious SQL into table name
 	maliciousTableName := `users"; DROP TABLE users; --`
 	dsl := &querydsl.QueryDSL{
@@ -869,7 +851,7 @@ func TestExecutorSQLInjectionProtection(t *testing.T) {
 func TestExecutorErrorHandling(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 
 	// Test invalid table name
 	dsl := &querydsl.QueryDSL{}
@@ -917,7 +899,7 @@ func TestExecutorErrorHandling(t *testing.T) {
 func TestExecutorConcurrencySafety(t *testing.T) {
 	db := setupTestDB(t) // This now uses a shared in-memory database
 	defer db.Close()
-	exec := NewSqliteExecutor(db)
+	exec := NewSqliteExecutor(db, nil)
 
 	var wg sync.WaitGroup
 	numGoroutines := 100

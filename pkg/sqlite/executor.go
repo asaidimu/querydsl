@@ -14,19 +14,23 @@ import (
 // SqliteExecutor implements the QueryExecutor interface for SQLite databases.
 type SqliteExecutor struct {
 	db                 *sql.DB
-	queryGenerator     *SqliteQuery
+	queryGenerator     querydsl.QueryGenerator
 	goComputeFunctions map[string]querydsl.GoComputeFunction
 	goFilterFunctions  map[querydsl.ComparisonOperator]querydsl.GoFilterFunction
 	mu                 sync.RWMutex // Mutex to protect goComputeFunctions and goFilterFunctions
 }
 
 // NewSqliteExecutor creates a new SqliteExecutor instance.
-func NewSqliteExecutor(db *sql.DB) *SqliteExecutor {
+func NewSqliteExecutor(db *sql.DB, query querydsl.QueryGenerator) *SqliteExecutor {
+	if query == nil {
+		query = NewSqliteQuery()
+	}
+
 	return &SqliteExecutor{
-		db:                 db,
-		queryGenerator:     NewSqliteQuery(),
+		db: db,
+		queryGenerator: query,
 		goComputeFunctions: make(map[string]querydsl.GoComputeFunction),
-		goFilterFunctions:  make(map[querydsl.ComparisonOperator]querydsl.GoFilterFunction),
+		goFilterFunctions: make(map[querydsl.ComparisonOperator]querydsl.GoFilterFunction),
 	}
 }
 
