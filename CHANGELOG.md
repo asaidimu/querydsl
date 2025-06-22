@@ -1,3 +1,14 @@
+# [5.0.0](https://github.com/asaidimu/querydsl/compare/v4.0.0...v5.0.0) (2025-06-22)
+
+
+* refactor(core)!: streamline query execution interfaces and add CRUD ([2629f73](https://github.com/asaidimu/querydsl/commit/2629f73d750d0854d0b7fe1afa9e97570842ef4f))
+
+
+### BREAKING CHANGES
+
+* The 'tableName' parameter has been removed from QueryExecutor.Query, QueryExecutor.Update, QueryGenerator.GenerateSelectSQL, and QueryGenerator.GenerateUpdateSQL. Existing calls to these methods must be updated, and table context should now be managed by the executor/generator instance.
+Additionally, the concrete SQLite implementations (pkg/sqlite/executor.go and pkg/sqlite/query.go) have been removed, requiring users to update their SQLite integration or provide new implementations conforming to the updated interfaces.
+
 # [4.0.0](https://github.com/asaidimu/querydsl/compare/v3.0.0...v4.0.0) (2025-06-20)
 
 
