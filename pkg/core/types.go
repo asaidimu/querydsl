@@ -101,7 +101,7 @@ type ProjectionField struct {
 // ComputedFieldExpression defines a computed field based on a function call.
 type ComputedFieldExpression struct {
 	Type       string       // e.g., "computed"
-	Expression FunctionCall // The function call that computes the value
+	Expression *FunctionCall // The function call that computes the value
 	Alias      string       // The alias for the computed field in the result
 }
 
