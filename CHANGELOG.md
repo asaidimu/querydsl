@@ -1,3 +1,13 @@
+# [6.0.0](https://github.com/asaidimu/querydsl/compare/v5.0.0...v6.0.0) (2025-06-22)
+
+
+* refactor(core)!: use pointer for ComputedFieldExpression expression ([69aebf9](https://github.com/asaidimu/querydsl/commit/69aebf93a0d1492fa3263d08473f3244f63bd469))
+
+
+### BREAKING CHANGES
+
+* The 'Expression' field of 'core.ComputedFieldExpression' is now a pointer. Users directly initializing 'ComputedFieldExpression' in Go code must update their assignments from 'Expression: FunctionCall{...}' to 'Expression: &FunctionCall{...}'.
+
 # [5.0.0](https://github.com/asaidimu/querydsl/compare/v4.0.0...v5.0.0) (2025-06-22)
 
 
